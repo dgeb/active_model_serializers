@@ -60,6 +60,23 @@ module ActiveModel
         array
       end
     end
+
+    def to_xml(*args)
+      @options[:hash] = hash = {}
+      @options[:unique_values] = {}
+
+      array = serializable_array.map(&:serializable_hash)
+
+      if root = @options[:root]
+        if hash.empty?
+          array.to_xml(:root => root)
+        else
+          hash.merge!(root => array).to_xml(:root => 'data')
+        end
+      else
+        array.to_xml()
+      end
+    end
   end
 
   # Active Model Serializer
@@ -412,6 +429,22 @@ module ActiveModel
         hash
       else
         serializable_hash
+      end
+    end
+
+    def to_xml(options=nil)
+      options ||= {}
+      primary_root = options.fetch(:root, @options.fetch(:root, _root))
+
+      @options[:hash] = hash = {}
+      @options[:unique_values] = {}
+
+      primary_hash = serializable_hash
+      if hash.empty?
+        primary_hash.to_xml(:root => primary_root)
+      else
+        hash.merge!(primary_root => primary_hash)
+        hash.to_xml(:root => :data)
       end
     end
 

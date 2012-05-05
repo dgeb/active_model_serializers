@@ -59,6 +59,26 @@ module ActionController
       super
     end
 
+    def _render_option_xml(xml, options)
+      if xml.respond_to?(:to_ary)
+        options[:root] ||= controller_name
+      end
+
+      serializer = options.delete(:serializer) ||
+        (xml.respond_to?(:active_model_serializer) && xml.active_model_serializer)
+
+      if serializer
+        options[:scope] = serialization_scope
+
+        if default_options = default_serializer_options
+          options = options.merge(default_options)
+        end
+
+        xml = serializer.new(xml, options)
+      end
+      super
+    end
+
     module ClassMethods
       def serialization_scope(scope)
         self._serialization_scope = scope
